@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Control Avance | Agrupado MV | Postes 230kV</title>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
+    <!-- Librerías para PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #eef2f7;
+            padding: 2rem 1.5rem;
+            transition: all 0.3s;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 32px;
+            box-shadow: 0 20px 35px -12px rgba(0,0,0,0.1);
+            overflow: hidden;
+            padding: 1.8rem 2rem 2rem 2rem;
+        }
+        /* Login overlay */
+        .login-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(6px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            transition: 0.3s;
+        }
+        .login-card {
+            background: white;
+            border-radius: 48px;
+            padding: 2rem 2rem 2.2rem;
+            width: 340px;
+            text-align: center;
+            box-shadow: 0 25px 45px rgba(0,0,0,0.3);
+            border: 1px solid #f0c674;
+        }
+        .login-card img.logo-login {
+            width: 80px;
+            margin-bottom: 1rem;
+        }
+        .login-card h3 {
+            color: #1e4663;
+            margin-bottom: 1.5rem;
+        }
+        .login-card input {
+            width: 100%;
+            padding: 12px 16px;
+            margin: 8px 0;
+            border: 1px solid #cbdde6;
+            border-radius: 32px;
+            font-size: 0.9rem;
+        }
+        .login-card button {
+            width: 100%;
+            background: #f39c12;
+            color: #1e2a3e;
+            font-weight: bold;
+            padding: 12px;
+            border: none;
+            border-radius: 40px;
+            margin-top: 1rem;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .error-msg {
+            color: #c0392b;
+            font-size: 0.8rem;
+            margin-top: 0.8rem;
+        }
+        /* Header con logo */
+        .header-flex {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            margin-bottom: 0.5rem;
+        }
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        .logo-img {
+            height: 55px;
+            width: auto;
+        }
+        .title-area h1 {
+            font-size: 1.8rem;
+            color: #1e2a3e;
+            border-left: 6px solid #f39c12;
+            padding-left: 1rem;
+            margin-bottom: 0;
+        }
+        .user-badge {
+            background: #f1f5f9;
+            padding: 6px 15px;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: #2c3e50;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #e67e22;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 0.75rem;
+        }
+        .sub {
+            color: #2c3e50;
+            font-weight: 500;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.75rem;
+        }
+        .grid-partidas { display: flex; flex-wrap: wrap; gap: 2rem; margin-bottom: 2rem; }
+        .card {
+            flex: 1; min-width: 320px; background: white; border-radius: 24px;
+            border: 1px solid #e2edf2; box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+            overflow: hidden;
+        }
+        .card-header { background: #f8fafc; padding: 1rem 1.5rem; border-bottom: 2px solid #e0e9f0; }
+        .card-header h2 { font-size: 1.3rem; font-weight: 600; color: #0f3b5c; display: flex; align-items: center; gap: 0.5rem; }
+        .badge { background: #f39c12; color: #1e2a3e; font-size: 0.7rem; font-weight: bold; padding: 0.2rem 0.6rem; border-radius: 40px; }
+        .tabla-control { padding: 0.5rem 1rem 1.2rem; }
+        .fila-item { display: flex; justify-content: space-between; align-items: center; padding: 0.8rem 0; border-bottom: 1px solid #ecf3f8; flex-wrap: wrap; }
+        .concepto { font-weight: 700; color: #1e4663; width: 170px; font-size: 0.95rem; }
+        .campos { display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; }
+        .campo { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+        .campo label { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; color: #5a6e7c; }
+        .campo input { width: 95px; padding: 8px; border: 1px solid #cbdde6; border-radius: 14px; text-align: center; }
+        .nota-pilas { font-size: 0.65rem; color: #d97706; margin-top: 0.2rem; }
+        .partida3-box { background: #fef9ef; border: 1px solid #ffe1b3; border-radius: 24px; padding: 1.2rem 1.8rem; margin-bottom: 2rem; }
+        .partida3-flex { display: flex; flex-wrap: wrap; gap: 2rem; }
+        .porcentaje-item { flex: 1; min-width: 150px; }
+        .porcentaje-input { display: flex; align-items: center; gap: 10px; }
+        .porcentaje-input input { width: 110px; padding: 10px; border-radius: 28px; border: 1px solid #ffd966; text-align: center; font-weight: bold; }
+        /* Notas hitos */
+        .hitos-box {
+            background: #eef4ff;
+            border-radius: 24px;
+            border-left: 6px solid #2c5f8a;
+            padding: 1.2rem 1.5rem;
+            margin-bottom: 1.8rem;
+        }
+        .hitos-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 0.8rem;
+        }
+        .hitos-header h3 { color: #1e4663; font-weight: 700; }
+        .notas-textarea {
+            width: 100%;
+            padding: 12px;
+            border-radius: 20px;
+            border: 1px solid #cbdde6;
+            font-family: monospace;
+            font-size: 0.85rem;
+            resize: vertical;
+            background: white;
+        }
+        .btn-small {
+            background: #2c5f8a;
+            color: white;
+            border: none;
+            padding: 6px 18px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 0.75rem;
+        }
+        .acciones { display: flex; flex-wrap: wrap; gap: 1rem; margin: 1rem 0; justify-content: center; }
+        .btn { padding: 12px 28px; border: none; border-radius: 40px; font-weight: 700; cursor: pointer; transition: 0.1s; }
+        .btn-primary { background: #2c5f8a; color: white; }
+        .btn-secondary { background: #f39c12; color: #1e2a3e; }
+        .btn-outline { background: white; border: 1px solid #bdc9d2; }
+        footer { text-align: center; margin-top: 1rem; font-size: 0.7rem; color: #6b8cae; }
+        .disabled-input { pointer-events: none; opacity: 0.7; background: #f4f6f9; }
+        .toast-msg { background: #1e4663; color: white; padding: 10px 20px; border-radius: 40px; position: fixed; bottom: 20px; right: 20px; opacity: 0; transition: 0.3s; z-index: 1100; }
+        .toast-msg.show { opacity: 1; }
+    </style>
+</head>
+<body>
+<div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23f39c12'/%3E%3Cpath fill='%23ffffff' d='M50 20 L65 40 L58 40 L58 60 L42 60 L42 40 L35 40 Z'/%3E%3Ctext x='50' y='78' font-size='20' text-anchor='middle' fill='white' font-weight='bold'%3EMV%3C/text%3E%3C/svg%3E" alt="Logo" class="logo-login">
+        <h3>🔐 Acceso al sistema</h3>
+        <input type="text" id="loginUser" placeholder="Usuario" autocomplete="off">
+        <input type="password" id="loginPass" placeholder="Contraseña">
+        <button id="loginBtn">Ingresar</button>
+        <div id="loginError" class="error-msg"></div>
+    </div>
+</div>
+
+<div class="container" id="mainApp" style="display: none;">
+    <div class="header-flex">
+        <div class="logo-area">
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23f39c12'/%3E%3Cpath fill='%23ffffff' d='M50 20 L65 40 L58 40 L58 60 L42 60 L42 40 L35 40 Z'/%3E%3Ctext x='50' y='78' font-size='20' text-anchor='middle' fill='white' font-weight='bold'%3EMV%3C/text%3E%3C/svg%3E" alt="Logo Agrupado MV" class="logo-img">
+            <div class="title-area"><h1>⚡ Control Avance - Cimentaciones 230kV</h1></div>
+        </div>
+        <div class="user-badge">👤 jose Escarrega <button id="logoutBtnApp" class="logout-btn">🚪 Salir</button></div>
+    </div>
+    <div class="sub">Proyecto: agrupado MV · Postes troncocónicos · Seguimiento de excavaciones, pilas, zapatas, postes</div>
+
+    <div class="grid-partidas">
+        <!-- PARTIDA 1 -->
+        <div class="card"><div class="card-header"><h2>📌 Partida 1 <span class="badge">LT apertura a SEM</span></h2></div>
+        <div class="tabla-control">
+            <div class="fila-item"><div class="concepto">Excavaciones</div><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p1_exc_tot" value="0"></div><div class="campo"><label>Ejecutadas</label><input type="number" id="p1_exc_ejec" value="0"></div></div></div>
+            <div class="fila-item"><div class="concepto">Pilas</div><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p1_pilas_tot" value="0"></div><div class="campo"><label>Terminadas</label><input type="number" id="p1_pilas_ter" value="0"></div><div class="campo"><label>Parciales</label><input type="number" id="p1_pilas_par" value="0"></div></div><div class="nota-pilas">* Terminadas = 100%</div></div>
+            <div class="fila-item"><div class="concepto">Zapatas</div><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p1_zap_tot" value="0"></div><div class="campo"><label>Ejecutadas</label><input type="number" id="p1_zap_ejec" value="0"></div></div></div>
+            <div class="fila-item"><div class="concepto">Instalación postes</div><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p1_postes_tot" value="0"></div><div class="campo"><label>Ejecutados</label><input type="number" id="p1_postes_ejec" value="0"></div></div></div>
+            <div class="fila-item"><div class="concepto">Instalación torres</div><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p1_torres_tot" value="0"></div><div class="campo"><label>Ejecutadas</label><input type="number" id="p1_torres_ejec" value="0"></div></div></div>
+        </div></div>
+
+        <!-- PARTIDA 2 sin zapatas ni torres -->
+        <div class="card"><div class="card-header"><h2>📌 Partida 2 <span class="badge">LT particular (SEM→SE)</span></h2></div>
+        <div class="tabla-control">
+            <div class="fila-item"><div class="concepto">Excavaciones</div><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p2_exc_tot" value="0"></div><div class="campo"><label>Ejecutadas</label><input type="number" id="p2_exc_ejec" value="0"></div></div></div>
+            <div class="fila-item"><div class="concepto">Pilas</div><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p2_pilas_tot" value="0"></div><div class="campo"><label>Terminadas</label><input type="number" id="p2_pilas_ter" value="0"></div><div class="campo"><label>Parciales</label><input type="number" id="p2_pilas_par" value="0"></div></div></div>
+            <div class="fila-item"><div class="concepto">Instalación postes</div><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p2_postes_tot" value="0"></div><div class="campo"><label>Ejecutados</label><input type="number" id="p2_postes_ejec" value="0"></div></div></div>
+        </div></div>
+    </div>
+
+    <!-- Partida 3 -->
+    <div class="partida3-box"><h2 style="font-size:1.2rem;">🔧 Partida 3 - Subestación de maniobras</h2>
+        <div class="partida3-flex">
+            <div class="porcentaje-item"><label>🏗️ Obra civil</label><div class="porcentaje-input"><input type="number" id="p3_civil" value="0" min="0" max="100"><span>%</span></div></div>
+            <div class="porcentaje-item"><label>⚙️ Obra electromecánica</label><div class="porcentaje-input"><input type="number" id="p3_electro" value="0" min="0" max="100"><span>%</span></div></div>
+            <div class="porcentaje-item"><label>🧪 Pruebas</label><div class="porcentaje-input"><input type="number" id="p3_pruebas" value="0" min="0" max="100"><span>%</span></div></div>
+        </div>
+    </div>
+
+    <!-- NOTAS HITOS IMPORTANTES -->
+    <div class="hitos-box">
+        <div class="hitos-header"><h3>📌 Hitos importantes / Observaciones de avance</h3><button id="saveNotesBtn" class="btn-small">💾 Guardar notas</button></div>
+        <textarea id="hitosNotas" rows="3" class="notas-textarea" placeholder="Registrar hitos relevantes, restricciones, decisiones técnicas, eventos críticos..."></textarea>
+    </div>
+
+    <div class="acciones">
+        <button class="btn btn-primary" id="guardarBtn">💾 Guardar todo (local + Firebase)</button>
+        <button class="btn btn-secondary" id="pdfBtn">📄 Generar Reporte PDF</button>
+        <button class="btn btn-outline" id="resetDefaultBtn">🔄 Restablecer ejemplo</button>
+    </div>
+    <footer>Los datos se guardan automáticamente en Firebase Firestore (modo seguro). Solo usuario autorizado puede editar.</footer>
+</div>
+<div id="toastMsg" class="toast-msg">✅ Listo</div>
+
+<script>
+    // -------- CONFIGURACIÓN FIREBASE ----------
+    const firebaseConfig = {
+        apiKey: "AIzaSyDwT2zYS2pYJ3sFjzbqjsnepPBiprx4a-I",
+        authDomain: "agrupado-mv.firebaseapp.com",
+        projectId: "agrupado-mv",
+        storageBucket: "agrupado-mv.firebasestorage.app",
+        messagingSenderId: "25862887596",
+        appId: "1:25862887596:web:019bd1267eeddfd798e709",
+        measurementId: "G-82BK14E0PW"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.firestore();
+    
+    // IDs campos (partida1, partida2, partida3, notas)
+    const partida1Ids = { exc_tot:'p1_exc_tot', exc_ejec:'p1_exc_ejec', pilas_tot:'p1_pilas_tot', pilas_ter:'p1_pilas_ter', pilas_par:'p1_pilas_par', zap_tot:'p1_zap_tot', zap_ejec:'p1_zap_ejec', postes_tot:'p1_postes_tot', postes_ejec:'p1_postes_ejec', torres_tot:'p1_torres_tot', torres_ejec:'p1_torres_ejec' };
+    const partida2Ids = { exc_tot:'p2_exc_tot', exc_ejec:'p2_exc_ejec', pilas_tot:'p2_pilas_tot', pilas_ter:'p2_pilas_ter', pilas_par:'p2_pilas_par', postes_tot:'p2_postes_tot', postes_ejec:'p2_postes_ejec' };
+    const partida3Ids = ['p3_civil','p3_electro','p3_pruebas'];
+    
+    let currentUser = null;
+    const VALID_USER = "jose Escarrega";
+    const VALID_PASS = "Makro@2026";
+    
+    function setFieldValue(id, val) { let el=document.getElementById(id); if(el) el.value=val; }
+    function getFieldNum(id) { let v=parseInt(document.getElementById(id)?.value); return isNaN(v)?0:v; }
+    
+    function loadDataFromFirebase() {
+        db.collection("avanceObra").doc("estadoGeneral").get().then(docSnap => {
+            if(docSnap.exists){
+                const data = docSnap.data();
+                for(let [id,val] of Object.entries(data)){
+                    let input = document.getElementById(id);
+                    if(input && (typeof val === 'number' || typeof val === 'string')) input.value = val;
+                }
+                if(data.hitosNotas) document.getElementById("hitosNotas").value = data.hitosNotas;
+                showToast("📡 Datos cargados desde la nube");
+            } else {
+                setDefaultDemoValues();
+                saveAllToFirebase(false);
+            }
+        }).catch(err=>{ console.warn(err); setDefaultDemoValues(); });
+    }
+    
+    function saveAllToFirebase(showMsg=true) {
+        const allData = {};
+        for(let id of Object.values(partida1Ids)) allData[id] = getFieldNum(id);
+        for(let id of Object.values(partida2Ids)) allData[id] = getFieldNum(id);
+        for(let id of partida3Ids) allData[id] = getFieldNum(id);
+        allData.hitosNotas = document.getElementById("hitosNotas").value;
+        db.collection("avanceObra").doc("estadoGeneral").set(allData, {merge: true}).then(()=>{
+            if(showMsg) showToast("💾 Datos guardados en Firebase y localmente");
+            localStorage.setItem("avanceBackup", JSON.stringify(allData));
+        }).catch(e=>{ showToast("⚠️ Error sync Firebase"); console.error(e); });
+    }
+    
+    function setDefaultDemoValues() {
+        setFieldValue('p1_exc_tot',24); setFieldValue('p1_exc_ejec',12);
+        setFieldValue('p1_pilas_tot',24); setFieldValue('p1_pilas_ter',8); setFieldValue('p1_pilas_par',4);
+        setFieldValue('p1_zap_tot',24); setFieldValue('p1_zap_ejec',8);
+        setFieldValue('p1_postes_tot',22); setFieldValue('p1_postes_ejec',6);
+        setFieldValue('p1_torres_tot',22); setFieldValue('p1_torres_ejec',4);
+        setFieldValue('p2_exc_tot',18); setFieldValue('p2_exc_ejec',9);
+        setFieldValue('p2_pilas_tot',18); setFieldValue('p2_pilas_ter',5); setFieldValue('p2_pilas_par',3);
+        setFieldValue('p2_postes_tot',16); setFieldValue('p2_postes_ejec',4);
+        setFieldValue('p3_civil',45); setFieldValue('p3_electro',30); setFieldValue('p3_pruebas',15);
+        document.getElementById("hitosNotas").value = "Hito: Liberación de frentes - Octubre. Pendiente revisión de suelos.";
+    }
+    
+    function enableEditing(enable) {
+        let inputs = document.querySelectorAll('#mainApp input, #mainApp textarea, #mainApp button:not(#logoutBtnApp)');
+        inputs.forEach(inp => { if(enable) inp.classList.remove('disabled-input'); else inp.classList.add('disabled-input'); });
+        if(!enable) return;
+        document.querySelectorAll('#mainApp input, #mainApp textarea').forEach(i=> i.disabled = false);
+    }
+    
+    function showToast(msg) { let t=document.getElementById('toastMsg'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+    
+    // Generar PDF con logo, hitos, etc.
+    async function generarPDF() {
+        const {jsPDF}=window.jspdf; const doc=new jsPDF();
+        doc.setFontSize(18); doc.setFont(undefined,'bold');
+        doc.text("Reporte de Avance", 14,20);
+        doc.setFontSize(10); doc.setFont(undefined,'normal');
+        doc.text("Proyecto: agrupado MV", 14,28);
+        doc.text(`Fecha: ${new Date().toLocaleString()}`, 14,34);
+        doc.text("Control construcción cimentaciones - Postes troncocónicos 230kV", 14,40);
+        // logo en PDF (textual)
+        doc.setFontSize(8); doc.text("⚡ MV", 170, 15);
+        // Partida1 tabla
+        let y=48;
+        doc.setFontSize(11); doc.text("Partida 1: LT apertura a SEM",14,y); y+=5;
+        const rows1=[]; const p1={exc:{t:getFieldNum('p1_exc_tot'),e:getFieldNum('p1_exc_ejec')}, pilas:{t:getFieldNum('p1_pilas_tot'),ter:getFieldNum('p1_pilas_ter'),par:getFieldNum('p1_pilas_par')}, zap:{t:getFieldNum('p1_zap_tot'),e:getFieldNum('p1_zap_ejec')}, postes:{t:getFieldNum('p1_postes_tot'),e:getFieldNum('p1_postes_ejec')}, torres:{t:getFieldNum('p1_torres_tot'),e:getFieldNum('p1_torres_ejec')}};
+        rows1.push(['Excavaciones',p1.exc.t,`${p1.exc.e} ejec`, p1.exc.t>0?((p1.exc.e/p1.exc.t)*100).toFixed(1)+'%':'0%']);
+        rows1.push(['Pilas',p1.pilas.t,`Term:${p1.pilas.ter} | Parc:${p1.pilas.par}`, p1.pilas.t>0?((p1.pilas.ter/p1.pilas.t)*100).toFixed(1)+'%':'0%']);
+        rows1.push(['Zapatas',p1.zap.t,`${p1.zap.e} ejec`, p1.zap.t>0?((p1.zap.e/p1.zap.t)*100).toFixed(1)+'%':'0%']);
+        rows1.push(['Inst.postes',p1.postes.t,`${p1.postes.e} ejec`, p1.postes.t>0?((p1.postes.e/p1.postes.t)*100).toFixed(1)+'%':'0%']);
+        rows1.push(['Inst.torres',p1.torres.t,`${p1.torres.e} ejec`, p1.torres.t>0?((p1.torres.e/p1.torres.t)*100).toFixed(1)+'%':'0%']);
+        doc.autoTable({startY:y, head:[['Concepto','Total','Ejec/Estado','Avance']], body:rows1, theme:'striped', headStyles:{fillColor:[52,73,94]}, margin:{left:14,right:14}});
+        let y2=doc.lastAutoTable.finalY+8;
+        doc.text("Partida 2: LT particular (SEM a SE particulares)",14,y2); y2+=5;
+        const rows2=[]; const p2={exc:{t:getFieldNum('p2_exc_tot'),e:getFieldNum('p2_exc_ejec')}, pilas:{t:getFieldNum('p2_pilas_tot'),ter:getFieldNum('p2_pilas_ter'),par:getFieldNum('p2_pilas_par')}, postes:{t:getFieldNum('p2_postes_tot'),e:getFieldNum('p2_postes_ejec')}};
+        rows2.push(['Excavaciones',p2.exc.t,`${p2.exc.e} ejec`, p2.exc.t>0?((p2.exc.e/p2.exc.t)*100).toFixed(1)+'%':'0%']);
+        rows2.push(['Pilas',p2.pilas.t,`Term:${p2.pilas.ter} | Parc:${p2.pilas.par}`, p2.pilas.t>0?((p2.pilas.ter/p2.pilas.t)*100).toFixed(1)+'%':'0%']);
+        rows2.push(['Inst.postes',p2.postes.t,`${p2.postes.e} ejec`, p2.postes.t>0?((p2.postes.e/p2.postes.t)*100).toFixed(1)+'%':'0%']);
+        doc.autoTable({startY:y2, head:[['Concepto','Total','Ejec/Estado','Avance']], body:rows2, theme:'striped', headStyles:{fillColor:[52,73,94]}, margin:{left:14,right:14}});
+        let y3=doc.lastAutoTable.finalY+8;
+        doc.text("Partida 3: Subestación de maniobras",14,y3); y3+=5;
+        doc.autoTable({startY:y3, head:[['Actividad','Avance (%)']], body:[['Obra Civil',`${getFieldNum('p3_civil')}%`],['Obra Electromecánica',`${getFieldNum('p3_electro')}%`],['Pruebas',`${getFieldNum('p3_pruebas')}%`]], theme:'grid', headStyles:{fillColor:[243,156,18]}, margin:{left:14,right:14}});
+        let y4=doc.lastAutoTable.finalY+8;
+        doc.setFontSize(10); doc.text("📌 Hitos y observaciones importantes:",14,y4); y4+=5;
+        let notas = document.getElementById("hitosNotas").value || "Sin notas registradas.";
+        let splitNotes = doc.splitTextToSize(notas, 170);
+        doc.text(splitNotes,14,y4);
+        doc.save(`Reporte_AgrupadoMV_${new Date().toISOString().slice(0,19)}.pdf`);
+        showToast("PDF generado con hitos");
+    }
+    
+    // Lógica LOGIN
+    document.getElementById("loginBtn").addEventListener("click",()=>{
+        let user=document.getElementById("loginUser").value.trim();
+        let pass=document.getElementById("loginPass").value;
+        if(user===VALID_USER && pass===VALID_PASS){
+            currentUser=user;
+            localStorage.setItem("auth_saved","true");
+            document.getElementById("loginOverlay").style.display="none";
+            document.getElementById("mainApp").style.display="block";
+            enableEditing(true);
+            loadDataFromFirebase();
+        } else { document.getElementById("loginError").innerText="Credenciales incorrectas"; }
+    });
+    document.getElementById("logoutBtnApp")?.addEventListener("click",()=>{
+        localStorage.removeItem("auth_saved");
+        document.getElementById("loginOverlay").style.display="flex";
+        document.getElementById("mainApp").style.display="none";
+        currentUser=null;
+    });
+    // validar sesión previa
+    if(localStorage.getItem("auth_saved")==="true"){
+        document.getElementById("loginOverlay").style.display="none";
+        document.getElementById("mainApp").style.display="block";
+        enableEditing(true);
+        loadDataFromFirebase();
+    }
+    // Eventos UI
+    document.getElementById("guardarBtn")?.addEventListener("click",()=>saveAllToFirebase(true));
+    document.getElementById("pdfBtn")?.addEventListener("click",generarPDF);
+    document.getElementById("resetDefaultBtn")?.addEventListener("click",()=>{ setDefaultDemoValues(); saveAllToFirebase(true); });
+    document.getElementById("saveNotesBtn")?.addEventListener("click",()=>saveAllToFirebase(true));
+    // validaciones numericas
+    document.querySelectorAll('input[type="number"]').forEach(inp=>inp.addEventListener('change',function(){let v=parseInt(this.value); if(isNaN(v)) this.value=0; if(v<0) this.value=0; if(this.id.includes("p3") && v>100) this.value=100;}));
+</script>
+</body>
+</html>
