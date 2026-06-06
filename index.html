@@ -7,169 +7,90 @@
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
     <!-- Librerías para PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-    <!-- Chart.js para gráficos -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
-        }
-        body {
-            background: #eef2f7;
-            min-height: 100vh;
-        }
-        /* Dashboard público */
-        .dashboard-container {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem;
-        }
-        /* Login modal */
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Roboto, sans-serif; }
+        body { background: #eef2f7; min-height: 100vh; }
+        .dashboard-container { max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
         .login-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            backdrop-filter: blur(6px);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            z-index: 2000;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(6px);
+            display: flex; align-items: center; justify-content: center; z-index: 2000;
         }
         .login-card {
-            background: white;
-            border-radius: 48px;
-            padding: 2rem;
-            width: 340px;
-            text-align: center;
-            box-shadow: 0 25px 45px rgba(0,0,0,0.3);
+            background: white; border-radius: 48px; padding: 2rem; width: 340px;
+            text-align: center; box-shadow: 0 25px 45px rgba(0,0,0,0.3);
         }
-        .login-card img { width: 70px; margin-bottom: 1rem; }
         .login-card input {
-            width: 100%;
-            padding: 12px 16px;
-            margin: 8px 0;
-            border: 1px solid #cbdde6;
-            border-radius: 32px;
+            width: 100%; padding: 12px 16px; margin: 8px 0;
+            border: 1px solid #cbdde6; border-radius: 32px;
         }
         .login-card button {
-            width: 100%;
-            background: #f39c12;
-            font-weight: bold;
-            padding: 12px;
-            border: none;
-            border-radius: 40px;
-            cursor: pointer;
-            margin-top: 1rem;
+            width: 100%; background: #f39c12; font-weight: bold; padding: 12px;
+            border: none; border-radius: 40px; cursor: pointer; margin-top: 1rem;
         }
         .error-msg { color: #c0392b; font-size: 0.8rem; margin-top: 0.8rem; }
-        /* Header */
         .dashboard-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-            background: white;
-            padding: 1rem 1.8rem;
-            border-radius: 28px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; margin-bottom: 1.5rem; background: white;
+            padding: 1rem 1.8rem; border-radius: 28px; box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
-        .logo-title {
-            display: flex;
-            align-items: center;
-            gap: 15px;
+        .logo-title { display: flex; align-items: center; gap: 15px; }
+        .logo-img { 
+            height: 55px; 
+            width: auto; 
+            max-width: 55px;
+            object-fit: contain;
         }
-        .logo-img { height: 50px; }
-        .logo-title h1 { font-size: 1.4rem; color: #1e2a3e; }
-        .badge-preview { background: #27ae60; color: white; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; font-weight: bold; }
-        .edit-btn {
-            background: #2c5f8a;
-            color: white;
-            border: none;
-            padding: 10px 24px;
-            border-radius: 40px;
-            cursor: pointer;
-            font-weight: bold;
-            transition: 0.2s;
+        /* Si tu logo es cuadrado y quieres fondo */
+        .logo-img-circle {
+            border-radius: 12px;
         }
-        .edit-btn:hover { background: #1e4663; }
-        /* Cards dashboard */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.2rem;
-            margin-bottom: 2rem;
-        }
-        .stat-card {
-            background: white;
-            border-radius: 24px;
-            padding: 1.2rem;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-            border-left: 5px solid #f39c12;
-        }
-        .stat-card h3 { color: #2c3e50; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .badge-preview { background: #27ae60; color: white; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; }
+        .edit-btn { background: #2c5f8a; color: white; border: none; padding: 10px 24px; border-radius: 40px; cursor: pointer; font-weight: bold; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
+        .stat-card { background: white; border-radius: 24px; padding: 1.2rem; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-left: 5px solid #f39c12; }
         .stat-number { font-size: 2rem; font-weight: 800; color: #1e4663; }
-        .progress-bar {
-            background: #ecf0f1;
-            border-radius: 20px;
-            height: 8px;
-            margin-top: 10px;
-            overflow: hidden;
-        }
+        .progress-bar { background: #ecf0f1; border-radius: 20px; height: 8px; margin-top: 10px; overflow: hidden; }
         .progress-fill { background: #f39c12; height: 100%; width: 0%; border-radius: 20px; }
-        .section-card {
-            background: white;
-            border-radius: 24px;
-            padding: 1.2rem 1.5rem;
-            margin-bottom: 1.5rem;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-        }
+        .section-card { background: white; border-radius: 24px; padding: 1.2rem 1.5rem; margin-bottom: 1.5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
         .section-title { font-size: 1.2rem; font-weight: 700; color: #1e4663; margin-bottom: 1rem; border-left: 4px solid #f39c12; padding-left: 12px; }
         table { width: 100%; border-collapse: collapse; }
         th, td { padding: 10px; text-align: left; border-bottom: 1px solid #e2e8f0; }
         th { background: #f8fafc; color: #1e4663; }
         .hitos-box { background: #fef9e6; border-radius: 20px; padding: 1rem; margin-top: 1rem; }
-        .footer-dashboard { text-align: center; margin-top: 2rem; color: #6b8cae; font-size: 0.75rem; }
-        /* Panel de edición (oculto) */
-        .editor-panel {
-            display: none;
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 1.5rem;
-        }
-        .editor-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            flex-wrap: wrap;
-            gap: 1rem;
-        }
-        .btn-group { display: flex; gap: 0.8rem; flex-wrap: wrap; }
+        .editor-panel { display: none; max-width: 1400px; margin: 0 auto; padding: 1.5rem; }
+        .editor-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem; }
         .btn { padding: 10px 24px; border: none; border-radius: 40px; font-weight: 600; cursor: pointer; }
         .btn-primary { background: #2c5f8a; color: white; }
         .btn-secondary { background: #f39c12; color: #1e2a3e; }
         .btn-outline { background: white; border: 1px solid #bdc9d2; }
-        .btn-danger { background: #e74c3c; color: white; }
         .fila-item { display: flex; justify-content: space-between; align-items: center; padding: 0.7rem 0; border-bottom: 1px solid #ecf3f8; flex-wrap: wrap; }
         .campo input { width: 95px; padding: 8px; border-radius: 14px; border: 1px solid #cbdde6; text-align: center; }
         .toast-msg { position: fixed; bottom: 20px; right: 20px; background: #1e4663; color: white; padding: 10px 20px; border-radius: 40px; opacity: 0; transition: 0.3s; z-index: 1100; }
         .toast-msg.show { opacity: 1; }
+        .sync-status { font-size: 0.7rem; margin-top: 5px; color: #27ae60; }
+        .card { flex: 1; background: white; border-radius: 24px; padding: 1rem; margin: 0.5rem; border: 1px solid #e2edf2; }
+        .grid-partidas { display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem; }
+        .logo-login {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            margin: 0 auto 15px auto;
+            display: block;
+        }
         @media (max-width: 700px) { .fila-item { flex-direction: column; align-items: flex-start; gap: 8px; } }
     </style>
 </head>
 <body>
 
-<!-- Modal de login para administración -->
+<!-- Modal de login -->
 <div id="loginModal" class="login-modal" style="display: none;">
     <div class="login-card">
-        <img src="logo.jpeg" class="logo-img" alt="Logo Agrupado MV">
+        <img src="logo.jpeg" alt="Logo" class="logo-login" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2715%27 fill=%27%23f39c12%27/%3E%3Ctext x=%2750%27 y=%2768%27 font-size=%2745%27 text-anchor=%27middle%27 fill=%27white%27 font-weight=%27bold%27%3EMV%3C/text%3E%3C/svg%3E'">
+        <!-- ============================================= -->
         <h3>🔐 Acceso administrador</h3>
         <input type="text" id="loginUser" placeholder="Usuario" autocomplete="off">
         <input type="password" id="loginPass" placeholder="Contraseña">
@@ -179,32 +100,30 @@
     </div>
 </div>
 
-<!-- DASHBOARD PÚBLICO (visualización) -->
+<!-- DASHBOARD PÚBLICO -->
 <div id="dashboardView" class="dashboard-container">
     <div class="dashboard-header">
-        <div class="logo-title"><img src="logo.jpeg" class="logo-img" alt="Logo Agrupado MV">
-            <div><h1>⚡ Agrupado MV</h1><span style="font-size: 0.75rem;">Control cimentaciones 230kV</span></div>
+        <div class="logo-title">
+            <img src="logo.jpeg" alt="Logo" class="logo-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2715%27 fill=%27%23f39c12%27/%3E%3Ctext x=%2750%27 y=%2768%27 font-size=%2745%27 text-anchor=%27middle%27 fill=%27white%27 font-weight=%27bold%27%3EMV%3C/text%3E%3C/svg%3E'">
+            <!-- ============================================= -->
+            <div><h1>Agrupado MV</h1><span style="font-size: 0.75rem;">Control cimentaciones 230kV</span></div>
         </div>
-        <div><span class="badge-preview">📊 Último reporte guardado</span>
-        <button id="openEditButton" class="edit-btn">✏️ Editar datos (login)</button></div>
+        <div><span class="badge-preview" id="syncBadge">📡 Sincronizando...</span>
+        <button id="openEditButton" class="edit-btn">✏️ Editar datos</button></div>
     </div>
 
-    <!-- Tarjetas resumen -->
     <div class="stats-grid" id="statsGrid">
         <div class="stat-card"><h3>📐 Avance Global Partida 1</h3><div class="stat-number" id="globalP1">0%</div><div class="progress-bar"><div class="progress-fill" id="progressP1Fill"></div></div></div>
         <div class="stat-card"><h3>📐 Avance Global Partida 2</h3><div class="stat-number" id="globalP2">0%</div><div class="progress-bar"><div class="progress-fill" id="progressP2Fill"></div></div></div>
         <div class="stat-card"><h3>🔧 Subestación (Promedio)</h3><div class="stat-number" id="avgSub">0%</div><div class="progress-bar"><div class="progress-fill" id="progressSubFill"></div></div></div>
     </div>
 
-    <!-- Detalle Partida 1 -->
     <div class="section-card"><div class="section-title">📌 Partida 1: LT apertura a SEM</div>
         <table id="tablaP1"><thead><tr><th>Concepto</th><th>Total</th><th>Ejecutado / Estado</th><th>Avance</th></tr></thead><tbody></tbody></table>
     </div>
-    <!-- Detalle Partida 2 -->
     <div class="section-card"><div class="section-title">📌 Partida 2: LT particular (SEM a SE particulares)</div>
         <table id="tablaP2"><thead><tr><th>Concepto</th><th>Total</th><th>Ejecutado / Estado</th><th>Avance</th></tr></thead><tbody></tbody></table>
     </div>
-    <!-- Partida 3 + hitos -->
     <div class="section-card"><div class="section-title">🔧 Partida 3: Subestación de maniobras</div>
         <div style="display: flex; gap: 2rem; flex-wrap: wrap; margin-bottom: 1rem;">
             <div><strong>Obra civil:</strong> <span id="p3_civil_view">0</span>%</div>
@@ -213,63 +132,165 @@
         </div>
         <div class="hitos-box"><strong>📋 Hitos importantes / Observaciones:</strong><br><span id="hitosTextView">Sin notas registradas</span></div>
     </div>
-    <div class="footer-dashboard">📅 Última actualización: <span id="lastUpdateTime">--</span> | Datos en tiempo real desde Firebase</div>
+    <div class="footer-dashboard" style="text-align: center; margin-top: 1rem; color: #6b8cae;">📅 Última actualización: <span id="lastUpdateTime">--</span></div>
 </div>
 
-<!-- PANEL DE EDICIÓN (protegido) -->
+<!-- PANEL DE EDICIÓN -->
 <div id="editorView" class="editor-panel">
     <div class="editor-header">
-        <div class="logo-title"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='50' r='45' fill='%23f39c12'/%3E%3Cpath fill='%23ffffff' d='M50 20 L65 40 L58 40 L58 60 L42 60 L42 40 L35 40 Z'/%3E%3C/svg%3E" class="logo-img"><h2>✏️ Modo Edición</h2></div>
-        <div class="btn-group"><button id="backToDashboardBtn" class="btn btn-outline">👁️ Ver Dashboard</button><button id="saveDataBtn" class="btn btn-primary">💾 Guardar cambios</button><button id="resetDemoBtn" class="btn btn-secondary">🔄 Restablecer ejemplo</button><button id="pdfReportBtn" class="btn btn-outline">📄 PDF</button></div>
+        <div class="logo-title">
+            <!-- ============================================= -->
+            <!-- LOGO EN PANEL EDITOR (cambia "logo.png" por tu archivo) -->
+            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2715%27 fill=%27%23f39c12%27/%3E%3Ctext x=%2750%27 y=%2768%27 font-size=%2745%27 text-anchor=%27middle%27 fill=%27white%27 font-weight=%27bold%27%3EMV%3C/text%3E%3C/svg%3E'">
+            <!-- ============================================= -->
+            <h2>Modo Edición</h2>
+        </div>
+        <div class="btn-group">
+            <button id="backToDashboardBtn" class="btn btn-outline">👁️ Ver Dashboard</button>
+            <button id="saveDataBtn" class="btn btn-primary">💾 Guardar cambios</button>
+            <button id="resetDemoBtn" class="btn btn-secondary">🔄 Restablecer ejemplo</button>
+            <button id="pdfReportBtn" class="btn btn-outline">📄 PDF</button>
+        </div>
     </div>
-    <div class="grid-partidas" style="display: flex; flex-wrap: wrap; gap: 1.5rem;">
-        <div class="card" style="flex:1; background:white; border-radius:24px; padding:1rem;"><h3>Partida 1</h3>
+    <div class="grid-partidas">
+        <div class="card"><h3>Partida 1</h3>
             <div class="fila-item"><span>Excavaciones</span><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p1_exc_tot"></div><div class="campo"><label>Ejecutadas</label><input type="number" id="p1_exc_ejec"></div></div></div>
             <div class="fila-item"><span>Pilas</span><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p1_pilas_tot"></div><div class="campo"><label>Terminadas</label><input type="number" id="p1_pilas_ter"></div><div class="campo"><label>Parciales</label><input type="number" id="p1_pilas_par"></div></div></div>
             <div class="fila-item"><span>Zapatas</span><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p1_zap_tot"></div><div class="campo"><label>Ejecutadas</label><input type="number" id="p1_zap_ejec"></div></div></div>
             <div class="fila-item"><span>Instalación postes</span><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p1_postes_tot"></div><div class="campo"><label>Ejecutados</label><input type="number" id="p1_postes_ejec"></div></div></div>
             <div class="fila-item"><span>Instalación torres</span><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p1_torres_tot"></div><div class="campo"><label>Ejecutadas</label><input type="number" id="p1_torres_ejec"></div></div></div>
         </div>
-        <div class="card" style="flex:1; background:white; border-radius:24px; padding:1rem;"><h3>Partida 2 (sin zapatas/torres)</h3>
+        <div class="card"><h3>Partida 2</h3>
             <div class="fila-item"><span>Excavaciones</span><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p2_exc_tot"></div><div class="campo"><label>Ejecutadas</label><input type="number" id="p2_exc_ejec"></div></div></div>
             <div class="fila-item"><span>Pilas</span><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p2_pilas_tot"></div><div class="campo"><label>Terminadas</label><input type="number" id="p2_pilas_ter"></div><div class="campo"><label>Parciales</label><input type="number" id="p2_pilas_par"></div></div></div>
             <div class="fila-item"><span>Instalación postes</span><div class="campos"><div class="campo"><label>Total</label><input type="number" id="p2_postes_tot"></div><div class="campo"><label>Ejecutados</label><input type="number" id="p2_postes_ejec"></div></div></div>
         </div>
     </div>
-    <div style="background:#fef9ef; border-radius:24px; padding:1rem; margin:1rem 0;"><h3>Partida 3 - Subestación</h3>
-        <div style="display:flex; gap:1.5rem; flex-wrap:wrap;"><div><label>Obra civil %</label><input type="number" id="p3_civil" min="0" max="100"></div>
-        <div><label>Obra electromecánica %</label><input type="number" id="p3_electro" min="0" max="100"></div>
-        <div><label>Pruebas %</label><input type="number" id="p3_pruebas" min="0" max="100"></div></div>
+    <div style="background:#fef9ef; border-radius:24px; padding:1rem; margin:1rem 0;">
+        <h3>Partida 3 - Subestación</h3>
+        <div style="display:flex; gap:1.5rem; flex-wrap:wrap;">
+            <div><label>Obra civil %</label><input type="number" id="p3_civil" min="0" max="100"></div>
+            <div><label>Obra electromecánica %</label><input type="number" id="p3_electro" min="0" max="100"></div>
+            <div><label>Pruebas %</label><input type="number" id="p3_pruebas" min="0" max="100"></div>
+        </div>
     </div>
-    <div style="margin-bottom:1rem;"><label>📌 Hitos importantes / Notas</label><textarea id="hitosNotasEdit" rows="3" style="width:100%; border-radius:20px; padding:12px; margin-top:6px;"></textarea></div>
+    <div style="margin-bottom:1rem;">
+        <label>📌 Hitos importantes / Notas</label>
+        <textarea id="hitosNotasEdit" rows="3" style="width:100%; border-radius:20px; padding:12px; margin-top:6px;"></textarea>
+    </div>
+    <div class="sync-status" id="editorSyncStatus">✅ Los datos se guardan localmente y en la nube</div>
 </div>
 <div id="toastMsg" class="toast-msg">✅ Listo</div>
 
 <script>
-    // Firebase
+    // Configuración Firebase
     const firebaseConfig = {
         apiKey: "AIzaSyDwT2zYS2pYJ3sFjzbqjsnepPBiprx4a-I",
         authDomain: "agrupado-mv.firebaseapp.com",
         projectId: "agrupado-mv",
         storageBucket: "agrupado-mv.firebasestorage.app",
         messagingSenderId: "25862887596",
-        appId: "1:25862887596:web:019bd1267eeddfd798e709",
-        measurementId: "G-82BK14E0PW"
+        appId: "1:25862887596:web:019bd1267eeddfd798e709"
     };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
-    const docRef = db.collection("avanceObra").doc("estadoGeneral");
     
-    let currentData = {}; // almacena último snapshot
-    const VALID_USER = "jose Escarrega";
-    const VALID_PASS = "Makro@2026";
+    let firebaseAvailable = false;
+    let db, docRef;
     
-    function showToast(msg) { let t=document.getElementById('toastMsg'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+    try {
+        firebase.initializeApp(firebaseConfig);
+        db = firebase.firestore();
+        docRef = db.collection("avanceObra").doc("estadoGeneral");
+        firebaseAvailable = true;
+        console.log("✅ Firebase conectado");
+    } catch(e) {
+        console.warn("Firebase error:", e);
+        firebaseAvailable = false;
+    }
     
-    // Actualizar dashboard con datos
+    const DEFAULT_DATA = {
+        p1_exc_tot:24, p1_exc_ejec:12,
+        p1_pilas_tot:24, p1_pilas_ter:8, p1_pilas_par:4,
+        p1_zap_tot:24, p1_zap_ejec:8,
+        p1_postes_tot:22, p1_postes_ejec:6,
+        p1_torres_tot:22, p1_torres_ejec:4,
+        p2_exc_tot:18, p2_exc_ejec:9,
+        p2_pilas_tot:18, p2_pilas_ter:5, p2_pilas_par:3,
+        p2_postes_tot:16, p2_postes_ejec:4,
+        p3_civil:45, p3_electro:30, p3_pruebas:15,
+        hitosNotas: "Hito: Liberación de frentes - Octubre. Pendiente revisión de suelos."
+    };
+    
+    let currentData = { ...DEFAULT_DATA };
+    
+    function saveToLocalStorage(data) {
+        localStorage.setItem('avanceAgrupadoMV', JSON.stringify(data));
+    }
+    
+    function loadFromLocalStorage() {
+        const saved = localStorage.getItem('avanceAgrupadoMV');
+        if (saved) {
+            try {
+                const data = JSON.parse(saved);
+                currentData = { ...DEFAULT_DATA, ...data };
+                return true;
+            } catch(e) {}
+        }
+        currentData = { ...DEFAULT_DATA };
+        return false;
+    }
+    
+    async function saveToFirebase(data) {
+        if (!firebaseAvailable) return false;
+        try {
+            await docRef.set(data, { merge: true });
+            return true;
+        } catch(e) {
+            console.error("Error Firebase:", e);
+            document.getElementById('syncBadge').innerHTML = "⚠️ Sin conexión cloud";
+            return false;
+        }
+    }
+    
+    async function loadFromFirebase() {
+        if (!firebaseAvailable) {
+            loadFromLocalStorage();
+            return currentData;
+        }
+        try {
+            const docSnap = await docRef.get();
+            if (docSnap.exists) {
+                const fbData = docSnap.data();
+                currentData = { ...DEFAULT_DATA, ...fbData };
+                saveToLocalStorage(currentData);
+                document.getElementById('syncBadge').innerHTML = "☁️ Sincronizado";
+                return currentData;
+            } else {
+                await docRef.set(DEFAULT_DATA);
+                currentData = { ...DEFAULT_DATA };
+                saveToLocalStorage(currentData);
+                return currentData;
+            }
+        } catch(e) {
+            console.error("Error leyendo Firebase:", e);
+            loadFromLocalStorage();
+            document.getElementById('syncBadge').innerHTML = "📡 Modo local";
+            return currentData;
+        }
+    }
+    
+    async function persistData(data) {
+        currentData = { ...data };
+        saveToLocalStorage(currentData);
+        if (firebaseAvailable) {
+            await saveToFirebase(currentData);
+            document.getElementById('syncBadge').innerHTML = "☁️ Sincronizado";
+        }
+        updateDashboard(currentData);
+        showToast("✅ Datos guardados");
+    }
+    
     function updateDashboard(data) {
-        if(!data) return;
-        // calcular avance partida 1 (promedio de conceptos principales)
+        if (!data) return;
         const p1Exc = (data.p1_exc_ejec||0)/(data.p1_exc_tot||1) * 100;
         const p1Pilas = (data.p1_pilas_ter||0)/(data.p1_pilas_tot||1) * 100;
         const p1Zap = (data.p1_zap_ejec||0)/(data.p1_zap_tot||1) * 100;
@@ -292,10 +313,9 @@
         document.getElementById('avgSub').innerText = Math.round(subProm)+"%";
         document.getElementById('progressSubFill').style.width = subProm+"%";
         
-        // llenar tablas
         let tbody1 = document.querySelector('#tablaP1 tbody'); tbody1.innerHTML='';
         let items1 = [
-            {nombre:"Excavaciones", total:data.p1_exc_tot||0, ejec:`${data.p1_exc_ejec||0} ejec`, avance: (data.p1_exc_tot?((data.p1_exc_ejec||0)/(data.p1_exc_tot)*100).toFixed(1):0)+"%"  },
+            {nombre:"Excavaciones", total:data.p1_exc_tot||0, ejec:`${data.p1_exc_ejec||0} ejec`, avance: (data.p1_exc_tot?((data.p1_exc_ejec||0)/(data.p1_exc_tot)*100).toFixed(1):0)+"%" },
             {nombre:"Pilas", total:data.p1_pilas_tot||0, ejec:`Term:${data.p1_pilas_ter||0} | Parc:${data.p1_pilas_par||0}`, avance: (data.p1_pilas_tot?((data.p1_pilas_ter||0)/(data.p1_pilas_tot)*100).toFixed(1):0)+"%" },
             {nombre:"Zapatas", total:data.p1_zap_tot||0, ejec:`${data.p1_zap_ejec||0} ejec`, avance: (data.p1_zap_tot?((data.p1_zap_ejec||0)/(data.p1_zap_tot)*100).toFixed(1):0)+"%" },
             {nombre:"Instalación postes", total:data.p1_postes_tot||0, ejec:`${data.p1_postes_ejec||0} ejec`, avance: (data.p1_postes_tot?((data.p1_postes_ejec||0)/(data.p1_postes_tot)*100).toFixed(1):0)+"%" },
@@ -316,84 +336,116 @@
         document.getElementById('p3_pruebas_view').innerText = data.p3_pruebas||0;
         document.getElementById('hitosTextView').innerHTML = (data.hitosNotas || "Sin notas registradas").replace(/\n/g,'<br>');
         document.getElementById('lastUpdateTime').innerText = new Date().toLocaleString();
-        
-        // también cargar en editor si está visible
-        if(document.getElementById('editorView').style.display === 'block') loadDataToEditor(data);
     }
     
     function loadDataToEditor(data) {
-        if(!data) return;
-        document.getElementById('p1_exc_tot').value=data.p1_exc_tot||0; document.getElementById('p1_exc_ejec').value=data.p1_exc_ejec||0;
-        document.getElementById('p1_pilas_tot').value=data.p1_pilas_tot||0; document.getElementById('p1_pilas_ter').value=data.p1_pilas_ter||0; document.getElementById('p1_pilas_par').value=data.p1_pilas_par||0;
-        document.getElementById('p1_zap_tot').value=data.p1_zap_tot||0; document.getElementById('p1_zap_ejec').value=data.p1_zap_ejec||0;
-        document.getElementById('p1_postes_tot').value=data.p1_postes_tot||0; document.getElementById('p1_postes_ejec').value=data.p1_postes_ejec||0;
-        document.getElementById('p1_torres_tot').value=data.p1_torres_tot||0; document.getElementById('p1_torres_ejec').value=data.p1_torres_ejec||0;
-        document.getElementById('p2_exc_tot').value=data.p2_exc_tot||0; document.getElementById('p2_exc_ejec').value=data.p2_exc_ejec||0;
-        document.getElementById('p2_pilas_tot').value=data.p2_pilas_tot||0; document.getElementById('p2_pilas_ter').value=data.p2_pilas_ter||0; document.getElementById('p2_pilas_par').value=data.p2_pilas_par||0;
-        document.getElementById('p2_postes_tot').value=data.p2_postes_tot||0; document.getElementById('p2_postes_ejec').value=data.p2_postes_ejec||0;
-        document.getElementById('p3_civil').value=data.p3_civil||0; document.getElementById('p3_electro').value=data.p3_electro||0; document.getElementById('p3_pruebas').value=data.p3_pruebas||0;
+        document.getElementById('p1_exc_tot').value=data.p1_exc_tot||0;
+        document.getElementById('p1_exc_ejec').value=data.p1_exc_ejec||0;
+        document.getElementById('p1_pilas_tot').value=data.p1_pilas_tot||0;
+        document.getElementById('p1_pilas_ter').value=data.p1_pilas_ter||0;
+        document.getElementById('p1_pilas_par').value=data.p1_pilas_par||0;
+        document.getElementById('p1_zap_tot').value=data.p1_zap_tot||0;
+        document.getElementById('p1_zap_ejec').value=data.p1_zap_ejec||0;
+        document.getElementById('p1_postes_tot').value=data.p1_postes_tot||0;
+        document.getElementById('p1_postes_ejec').value=data.p1_postes_ejec||0;
+        document.getElementById('p1_torres_tot').value=data.p1_torres_tot||0;
+        document.getElementById('p1_torres_ejec').value=data.p1_torres_ejec||0;
+        document.getElementById('p2_exc_tot').value=data.p2_exc_tot||0;
+        document.getElementById('p2_exc_ejec').value=data.p2_exc_ejec||0;
+        document.getElementById('p2_pilas_tot').value=data.p2_pilas_tot||0;
+        document.getElementById('p2_pilas_ter').value=data.p2_pilas_ter||0;
+        document.getElementById('p2_pilas_par').value=data.p2_pilas_par||0;
+        document.getElementById('p2_postes_tot').value=data.p2_postes_tot||0;
+        document.getElementById('p2_postes_ejec').value=data.p2_postes_ejec||0;
+        document.getElementById('p3_civil').value=data.p3_civil||0;
+        document.getElementById('p3_electro').value=data.p3_electro||0;
+        document.getElementById('p3_pruebas').value=data.p3_pruebas||0;
         document.getElementById('hitosNotasEdit').value = data.hitosNotas || "";
     }
     
     function collectEditorData() {
         return {
-            p1_exc_tot: parseInt(document.getElementById('p1_exc_tot').value)||0, p1_exc_ejec: parseInt(document.getElementById('p1_exc_ejec').value)||0,
-            p1_pilas_tot: parseInt(document.getElementById('p1_pilas_tot').value)||0, p1_pilas_ter: parseInt(document.getElementById('p1_pilas_ter').value)||0, p1_pilas_par: parseInt(document.getElementById('p1_pilas_par').value)||0,
-            p1_zap_tot: parseInt(document.getElementById('p1_zap_tot').value)||0, p1_zap_ejec: parseInt(document.getElementById('p1_zap_ejec').value)||0,
-            p1_postes_tot: parseInt(document.getElementById('p1_postes_tot').value)||0, p1_postes_ejec: parseInt(document.getElementById('p1_postes_ejec').value)||0,
-            p1_torres_tot: parseInt(document.getElementById('p1_torres_tot').value)||0, p1_torres_ejec: parseInt(document.getElementById('p1_torres_ejec').value)||0,
-            p2_exc_tot: parseInt(document.getElementById('p2_exc_tot').value)||0, p2_exc_ejec: parseInt(document.getElementById('p2_exc_ejec').value)||0,
-            p2_pilas_tot: parseInt(document.getElementById('p2_pilas_tot').value)||0, p2_pilas_ter: parseInt(document.getElementById('p2_pilas_ter').value)||0, p2_pilas_par: parseInt(document.getElementById('p2_pilas_par').value)||0,
-            p2_postes_tot: parseInt(document.getElementById('p2_postes_tot').value)||0, p2_postes_ejec: parseInt(document.getElementById('p2_postes_ejec').value)||0,
-            p3_civil: parseInt(document.getElementById('p3_civil').value)||0, p3_electro: parseInt(document.getElementById('p3_electro').value)||0, p3_pruebas: parseInt(document.getElementById('p3_pruebas').value)||0,
+            p1_exc_tot: parseInt(document.getElementById('p1_exc_tot').value)||0,
+            p1_exc_ejec: parseInt(document.getElementById('p1_exc_ejec').value)||0,
+            p1_pilas_tot: parseInt(document.getElementById('p1_pilas_tot').value)||0,
+            p1_pilas_ter: parseInt(document.getElementById('p1_pilas_ter').value)||0,
+            p1_pilas_par: parseInt(document.getElementById('p1_pilas_par').value)||0,
+            p1_zap_tot: parseInt(document.getElementById('p1_zap_tot').value)||0,
+            p1_zap_ejec: parseInt(document.getElementById('p1_zap_ejec').value)||0,
+            p1_postes_tot: parseInt(document.getElementById('p1_postes_tot').value)||0,
+            p1_postes_ejec: parseInt(document.getElementById('p1_postes_ejec').value)||0,
+            p1_torres_tot: parseInt(document.getElementById('p1_torres_tot').value)||0,
+            p1_torres_ejec: parseInt(document.getElementById('p1_torres_ejec').value)||0,
+            p2_exc_tot: parseInt(document.getElementById('p2_exc_tot').value)||0,
+            p2_exc_ejec: parseInt(document.getElementById('p2_exc_ejec').value)||0,
+            p2_pilas_tot: parseInt(document.getElementById('p2_pilas_tot').value)||0,
+            p2_pilas_ter: parseInt(document.getElementById('p2_pilas_ter').value)||0,
+            p2_pilas_par: parseInt(document.getElementById('p2_pilas_par').value)||0,
+            p2_postes_tot: parseInt(document.getElementById('p2_postes_tot').value)||0,
+            p2_postes_ejec: parseInt(document.getElementById('p2_postes_ejec').value)||0,
+            p3_civil: parseInt(document.getElementById('p3_civil').value)||0,
+            p3_electro: parseInt(document.getElementById('p3_electro').value)||0,
+            p3_pruebas: parseInt(document.getElementById('p3_pruebas').value)||0,
             hitosNotas: document.getElementById('hitosNotasEdit').value
         };
     }
     
-    function saveToFirebase(data, showMsg=true) {
-        docRef.set(data, {merge: true}).then(()=>{ if(showMsg) showToast("✅ Datos guardados"); fetchDataAndUpdate(); }).catch(e=>showToast("Error sync"));
+    function showToast(msg) { let t=document.getElementById('toastMsg'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+    
+    function generarPDF() {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        doc.setFontSize(16); doc.text("Reporte de Avance - Agrupado MV", 14, 20);
+        doc.setFontSize(10); doc.text(`Fecha: ${new Date().toLocaleString()}`, 14, 28);
+        doc.text("Proyecto: Postes troncocónicos 230kV", 14, 34);
+        doc.save(`Reporte_${new Date().toISOString().slice(0,19)}.pdf`);
+        showToast("PDF generado");
     }
     
-    function fetchDataAndUpdate() {
-        docRef.get().then(docSnap=>{ if(docSnap.exists){ currentData=docSnap.data(); updateDashboard(currentData); } else { setDefaultAndSave(); } });
-    }
-    
-    function setDefaultAndSave() {
-        let defaultData = {
-            p1_exc_tot:24, p1_exc_ejec:12, p1_pilas_tot:24, p1_pilas_ter:8, p1_pilas_par:4, p1_zap_tot:24, p1_zap_ejec:8, p1_postes_tot:22, p1_postes_ejec:6, p1_torres_tot:22, p1_torres_ejec:4,
-            p2_exc_tot:18, p2_exc_ejec:9, p2_pilas_tot:18, p2_pilas_ter:5, p2_pilas_par:3, p2_postes_tot:16, p2_postes_ejec:4,
-            p3_civil:45, p3_electro:30, p3_pruebas:15, hitosNotas:"Hito: Liberación frentes - Pendiente revisión de suelos."
-        };
-        saveToFirebase(defaultData, false);
-    }
-    
-    // UI Cambio de vistas
     const dashboardDiv = document.getElementById('dashboardView');
     const editorDiv = document.getElementById('editorView');
     const loginModal = document.getElementById('loginModal');
-    let editorActive = false;
+    const VALID_USER = "jose Escarrega";
+    const VALID_PASS = "Makro@2026";
     
     document.getElementById('openEditButton').onclick = () => { loginModal.style.display = 'flex'; };
     document.getElementById('closeLoginBtn').onclick = () => { loginModal.style.display = 'none'; };
     document.getElementById('loginBtn').onclick = () => {
         let user = document.getElementById('loginUser').value.trim();
         let pass = document.getElementById('loginPass').value;
-        if(user===VALID_USER && pass===VALID_PASS){
+        if(user === VALID_USER && pass === VALID_PASS) {
             loginModal.style.display = 'none';
             dashboardDiv.style.display = 'none';
             editorDiv.style.display = 'block';
-            fetchDataAndUpdate();
-            setTimeout(()=>{ if(currentData) loadDataToEditor(currentData); }, 300);
-        } else { document.getElementById('loginError').innerText="Credenciales incorrectas"; }
+            loadDataToEditor(currentData);
+        } else {
+            document.getElementById('loginError').innerText = "Credenciales incorrectas";
+        }
     };
-    document.getElementById('backToDashboardBtn').onclick = () => { editorDiv.style.display = 'none'; dashboardDiv.style.display = 'block'; fetchDataAndUpdate(); };
-    document.getElementById('saveDataBtn').onclick = () => { let newData = collectEditorData(); saveToFirebase(newData, true); };
-    document.getElementById('resetDemoBtn').onclick = () => { setDefaultAndSave(); setTimeout(()=>fetchDataAndUpdate(),500); };
-    document.getElementById('pdfReportBtn').onclick = () => { window.open('#', '_blank'); alert("Función PDF disponible en dashboard"); };
+    document.getElementById('backToDashboardBtn').onclick = async () => {
+        editorDiv.style.display = 'none';
+        dashboardDiv.style.display = 'block';
+        await loadFromFirebase();
+        updateDashboard(currentData);
+    };
+    document.getElementById('saveDataBtn').onclick = async () => {
+        const newData = collectEditorData();
+        await persistData(newData);
+        showToast("Datos guardados correctamente");
+    };
+    document.getElementById('resetDemoBtn').onclick = async () => {
+        await persistData(DEFAULT_DATA);
+        loadDataToEditor(currentData);
+        showToast("Datos restablecidos a valores de ejemplo");
+    };
+    document.getElementById('pdfReportBtn').onclick = generarPDF;
     
-    // Inicial
-    fetchDataAndUpdate();
-    setInterval(fetchDataAndUpdate, 15000);
+    async function init() {
+        await loadFromFirebase();
+        updateDashboard(currentData);
+    }
+    init();
+    setInterval(async () => { await loadFromFirebase(); updateDashboard(currentData); }, 30000);
 </script>
 </body>
 </html>
