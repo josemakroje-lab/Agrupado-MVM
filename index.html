@@ -4,9 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>Dashboard Avance | Agrupado MV | Postes 230kV</title>
-    <!-- Firebase SDKs -->
+    <!-- Firebase SDKs - VERSIÓN COMPAT (funciona directamente en HTML) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-analytics-compat.js"></script>
     <!-- Librerías para PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
@@ -44,10 +45,6 @@
             max-width: 55px;
             object-fit: contain;
         }
-        /* Si tu logo es cuadrado y quieres fondo */
-        .logo-img-circle {
-            border-radius: 12px;
-        }
         .badge-preview { background: #27ae60; color: white; padding: 6px 14px; border-radius: 40px; font-size: 0.75rem; }
         .edit-btn { background: #2c5f8a; color: white; border: none; padding: 10px 24px; border-radius: 40px; cursor: pointer; font-weight: bold; }
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1.2rem; margin-bottom: 2rem; }
@@ -81,6 +78,18 @@
             margin: 0 auto 15px auto;
             display: block;
         }
+        .firebase-status {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: #2c5f8a;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            z-index: 100;
+            cursor: pointer;
+        }
         @media (max-width: 700px) { .fila-item { flex-direction: column; align-items: flex-start; gap: 8px; } }
     </style>
 </head>
@@ -89,8 +98,7 @@
 <!-- Modal de login -->
 <div id="loginModal" class="login-modal" style="display: none;">
     <div class="login-card">
-        <img src="logo.jpeg" alt="Logo" class="logo-login" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2715%27 fill=%27%23f39c12%27/%3E%3Ctext x=%2750%27 y=%2768%27 font-size=%2745%27 text-anchor=%27middle%27 fill=%27white%27 font-weight=%27bold%27%3EMV%3C/text%3E%3C/svg%3E'">
-        <!-- ============================================= -->
+        <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='15' fill='%23f39c12'/%3E%3Ctext x='50' y='68' font-size='45' text-anchor='middle' fill='white' font-weight='bold'%3EMV%3C/text%3E%3C/svg%3E" alt="Logo" class="logo-login">
         <h3>🔐 Acceso administrador</h3>
         <input type="text" id="loginUser" placeholder="Usuario" autocomplete="off">
         <input type="password" id="loginPass" placeholder="Contraseña">
@@ -104,15 +112,14 @@
 <div id="dashboardView" class="dashboard-container">
     <div class="dashboard-header">
         <div class="logo-title">
-            <img src="logo.jpeg" alt="Logo" class="logo-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2715%27 fill=%27%23f39c12%27/%3E%3Ctext x=%2750%27 y=%2768%27 font-size=%2745%27 text-anchor=%27middle%27 fill=%27white%27 font-weight=%27bold%27%3EMV%3C/text%3E%3C/svg%3E'">
-            <!-- ============================================= -->
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='15' fill='%23f39c12'/%3E%3Ctext x='50' y='68' font-size='45' text-anchor='middle' fill='white' font-weight='bold'%3EMV%3C/text%3E%3C/svg%3E" alt="Logo" class="logo-img">
             <div><h1>Agrupado MV</h1><span style="font-size: 0.75rem;">Control cimentaciones 230kV</span></div>
         </div>
-        <div><span class="badge-preview" id="syncBadge">📡 Sincronizando...</span>
+        <div><span class="badge-preview" id="syncBadge">📡 Conectando...</span>
         <button id="openEditButton" class="edit-btn">✏️ Editar datos</button></div>
     </div>
 
-    <div class="stats-grid" id="statsGrid">
+    <div class="stats-grid">
         <div class="stat-card"><h3>📐 Avance Global Partida 1</h3><div class="stat-number" id="globalP1">0%</div><div class="progress-bar"><div class="progress-fill" id="progressP1Fill"></div></div></div>
         <div class="stat-card"><h3>📐 Avance Global Partida 2</h3><div class="stat-number" id="globalP2">0%</div><div class="progress-bar"><div class="progress-fill" id="progressP2Fill"></div></div></div>
         <div class="stat-card"><h3>🔧 Subestación (Promedio)</h3><div class="stat-number" id="avgSub">0%</div><div class="progress-bar"><div class="progress-fill" id="progressSubFill"></div></div></div>
@@ -139,10 +146,7 @@
 <div id="editorView" class="editor-panel">
     <div class="editor-header">
         <div class="logo-title">
-            <!-- ============================================= -->
-            <!-- LOGO EN PANEL EDITOR (cambia "logo.png" por tu archivo) -->
-            <img src="logo.png" alt="Logo" class="logo-img" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 100 100%27%3E%3Crect width=%27100%27 height=%27100%27 rx=%2715%27 fill=%27%23f39c12%27/%3E%3Ctext x=%2750%27 y=%2768%27 font-size=%2745%27 text-anchor=%27middle%27 fill=%27white%27 font-weight=%27bold%27%3EMV%3C/text%3E%3C/svg%3E'">
-            <!-- ============================================= -->
+            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='15' fill='%23f39c12'/%3E%3Ctext x='50' y='68' font-size='45' text-anchor='middle' fill='white' font-weight='bold'%3EMV%3C/text%3E%3C/svg%3E" alt="Logo" class="logo-img">
             <h2>Modo Edición</h2>
         </div>
         <div class="btn-group">
@@ -181,32 +185,42 @@
     <div class="sync-status" id="editorSyncStatus">✅ Los datos se guardan localmente y en la nube</div>
 </div>
 <div id="toastMsg" class="toast-msg">✅ Listo</div>
+<div class="firebase-status" id="firebaseStatus">🔍 Verificar Firebase</div>
 
 <script>
-    // Configuración Firebase
+    // ============================================
+    // CONFIGURACIÓN DE FIREBASE - VERSIÓN CORRECTA
+    // ============================================
     const firebaseConfig = {
         apiKey: "AIzaSyDwT2zYS2pYJ3sFjzbqjsnepPBiprx4a-I",
         authDomain: "agrupado-mv.firebaseapp.com",
         projectId: "agrupado-mv",
         storageBucket: "agrupado-mv.firebasestorage.app",
         messagingSenderId: "25862887596",
-        appId: "1:25862887596:web:019bd1267eeddfd798e709"
+        appId: "1:25862887596:web:019bd1267eeddfd798e709",
+        measurementId: "G-82BK14E0PW"
     };
-    
+
+    // Inicializar Firebase (usando la sintaxis compat)
+    let db, analytics;
     let firebaseAvailable = false;
-    let db, docRef;
     
     try {
         firebase.initializeApp(firebaseConfig);
         db = firebase.firestore();
-        docRef = db.collection("avanceObra").doc("estadoGeneral");
+        analytics = firebase.analytics();
         firebaseAvailable = true;
-        console.log("✅ Firebase conectado");
+        console.log("✅ Firebase conectado correctamente");
+        document.getElementById('firebaseStatus').innerHTML = "✅ Firebase OK";
+        document.getElementById('firebaseStatus').style.background = "#27ae60";
     } catch(e) {
-        console.warn("Firebase error:", e);
+        console.error("❌ Error al conectar Firebase:", e);
+        document.getElementById('firebaseStatus').innerHTML = "❌ Firebase Error";
+        document.getElementById('firebaseStatus').style.background = "#c0392b";
         firebaseAvailable = false;
     }
     
+    // Datos por defecto
     const DEFAULT_DATA = {
         p1_exc_tot:24, p1_exc_ejec:12,
         p1_pilas_tot:24, p1_pilas_ter:8, p1_pilas_par:4,
@@ -222,8 +236,10 @@
     
     let currentData = { ...DEFAULT_DATA };
     
+    // Funciones de almacenamiento
     function saveToLocalStorage(data) {
         localStorage.setItem('avanceAgrupadoMV', JSON.stringify(data));
+        console.log("💾 Guardado en localStorage");
     }
     
     function loadFromLocalStorage() {
@@ -242,11 +258,13 @@
     async function saveToFirebase(data) {
         if (!firebaseAvailable) return false;
         try {
-            await docRef.set(data, { merge: true });
+            await db.collection("avanceObra").doc("estadoGeneral").set(data, { merge: true });
+            console.log("☁️ Guardado en Firebase");
+            document.getElementById('syncBadge').innerHTML = "☁️ Sincronizado";
             return true;
         } catch(e) {
             console.error("Error Firebase:", e);
-            document.getElementById('syncBadge').innerHTML = "⚠️ Sin conexión cloud";
+            document.getElementById('syncBadge').innerHTML = "⚠️ Error cloud";
             return false;
         }
     }
@@ -254,22 +272,26 @@
     async function loadFromFirebase() {
         if (!firebaseAvailable) {
             loadFromLocalStorage();
+            document.getElementById('syncBadge').innerHTML = "📡 Modo local";
             return currentData;
         }
         try {
+            const docRef = db.collection("avanceObra").doc("estadoGeneral");
             const docSnap = await docRef.get();
             if (docSnap.exists) {
                 const fbData = docSnap.data();
                 currentData = { ...DEFAULT_DATA, ...fbData };
                 saveToLocalStorage(currentData);
                 document.getElementById('syncBadge').innerHTML = "☁️ Sincronizado";
-                return currentData;
+                console.log("📥 Datos cargados desde Firebase");
             } else {
+                // Crear documento por primera vez
                 await docRef.set(DEFAULT_DATA);
                 currentData = { ...DEFAULT_DATA };
                 saveToLocalStorage(currentData);
-                return currentData;
+                console.log("📄 Documento creado en Firebase");
             }
+            return currentData;
         } catch(e) {
             console.error("Error leyendo Firebase:", e);
             loadFromLocalStorage();
@@ -283,14 +305,15 @@
         saveToLocalStorage(currentData);
         if (firebaseAvailable) {
             await saveToFirebase(currentData);
-            document.getElementById('syncBadge').innerHTML = "☁️ Sincronizado";
         }
         updateDashboard(currentData);
-        showToast("✅ Datos guardados");
+        showToast("✅ Datos guardados correctamente");
     }
     
     function updateDashboard(data) {
         if (!data) return;
+        
+        // Calcular avances
         const p1Exc = (data.p1_exc_ejec||0)/(data.p1_exc_tot||1) * 100;
         const p1Pilas = (data.p1_pilas_ter||0)/(data.p1_pilas_tot||1) * 100;
         const p1Zap = (data.p1_zap_ejec||0)/(data.p1_zap_tot||1) * 100;
@@ -313,6 +336,7 @@
         document.getElementById('avgSub').innerText = Math.round(subProm)+"%";
         document.getElementById('progressSubFill').style.width = subProm+"%";
         
+        // Llenar tablas
         let tbody1 = document.querySelector('#tablaP1 tbody'); tbody1.innerHTML='';
         let items1 = [
             {nombre:"Excavaciones", total:data.p1_exc_tot||0, ejec:`${data.p1_exc_ejec||0} ejec`, avance: (data.p1_exc_tot?((data.p1_exc_ejec||0)/(data.p1_exc_tot)*100).toFixed(1):0)+"%" },
@@ -390,18 +414,46 @@
         };
     }
     
-    function showToast(msg) { let t=document.getElementById('toastMsg'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+    function showToast(msg) { 
+        let t=document.getElementById('toastMsg'); 
+        t.textContent=msg; 
+        t.classList.add('show'); 
+        setTimeout(()=>t.classList.remove('show'),2500); 
+    }
     
     function generarPDF() {
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
-        doc.setFontSize(16); doc.text("Reporte de Avance - Agrupado MV", 14, 20);
-        doc.setFontSize(10); doc.text(`Fecha: ${new Date().toLocaleString()}`, 14, 28);
+        doc.setFontSize(16); 
+        doc.text("Reporte de Avance - Agrupado MV", 14, 20);
+        doc.setFontSize(10); 
+        doc.text(`Fecha: ${new Date().toLocaleString()}`, 14, 28);
         doc.text("Proyecto: Postes troncocónicos 230kV", 14, 34);
         doc.save(`Reporte_${new Date().toISOString().slice(0,19)}.pdf`);
         showToast("PDF generado");
     }
     
+    // Verificar Firebase manualmente
+    document.getElementById('firebaseStatus').onclick = async () => {
+        if (!firebaseAvailable) {
+            alert("❌ Firebase no está disponible. Verifica tu conexión.");
+            return;
+        }
+        try {
+            const testRef = db.collection("avanceObra").doc("test");
+            await testRef.set({ test: true, timestamp: new Date() });
+            await testRef.delete();
+            alert("✅ Firebase está funcionando correctamente!\n\nLa base de datos está accesible y se pueden guardar datos.");
+            document.getElementById('firebaseStatus').innerHTML = "✅ Firebase OK";
+            document.getElementById('firebaseStatus').style.background = "#27ae60";
+        } catch(e) {
+            alert("❌ Error con Firebase:\n" + e.message + "\n\nVerifica las reglas de seguridad en Firebase Console.");
+            document.getElementById('firebaseStatus').innerHTML = "❌ Firebase Error";
+            document.getElementById('firebaseStatus').style.background = "#c0392b";
+        }
+    };
+    
+    // Lógica de vistas y login
     const dashboardDiv = document.getElementById('dashboardView');
     const editorDiv = document.getElementById('editorView');
     const loginModal = document.getElementById('loginModal');
@@ -418,6 +470,7 @@
             dashboardDiv.style.display = 'none';
             editorDiv.style.display = 'block';
             loadDataToEditor(currentData);
+            showToast("✅ Bienvenido, modo edición activado");
         } else {
             document.getElementById('loginError').innerText = "Credenciales incorrectas";
         }
@@ -440,9 +493,11 @@
     };
     document.getElementById('pdfReportBtn').onclick = generarPDF;
     
+    // Inicializar aplicación
     async function init() {
         await loadFromFirebase();
         updateDashboard(currentData);
+        console.log("🚀 Aplicación inicializada");
     }
     init();
     setInterval(async () => { await loadFromFirebase(); updateDashboard(currentData); }, 30000);
