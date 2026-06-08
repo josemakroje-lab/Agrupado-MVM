@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>Dashboard Avance | Agrupado MV | Postes 230kV</title>
+    <title>Dashboard Avance | LT Particular MVM | Postes 230kV</title>
     <!-- Firebase SDKs - VERSIÓN COMPAT (funciona directamente en HTML) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -98,8 +98,7 @@
 <!-- Modal de login -->
 <div id="loginModal" class="login-modal" style="display: none;">
     <div class="login-card">
-        <img src="mi-logo.jpeg" class="logo-img" alt="Logo">
-        <h3>🔐 Acceso administrador</h3>
+        <img src="mi-logo.jpeg" alt="Logo" class="logo-login">
         <input type="text" id="loginUser" placeholder="Usuario" autocomplete="off">
         <input type="password" id="loginPass" placeholder="Contraseña">
         <button id="loginBtn">Ingresar a edición</button>
@@ -112,8 +111,8 @@
 <div id="dashboardView" class="dashboard-container">
     <div class="dashboard-header">
         <div class="logo-title">
-            <img src="mi-logo.jpeg" class="logo-img" alt="Logo">
-            <div><h1>Agrupado MV</h1><span style="font-size: 0.75rem;">Control cimentaciones 230kV</span></div>
+            <img src="mi-logo.jpeg" alt="Logo" class="logo-login">
+            <div><h1>LT Particular MVM</h1><span style="font-size: 0.75rem;">Control cimentaciones 230kV - Postes troncocónicos</span></div>
         </div>
         <div><span class="badge-preview" id="syncBadge">📡 Conectando...</span>
         <button id="openEditButton" class="edit-btn">✏️ Editar datos</button></div>
@@ -146,8 +145,7 @@
 <div id="editorView" class="editor-panel">
     <div class="editor-header">
         <div class="logo-title">
-            <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='15' fill='%23f39c12'/%3E%3Ctext x='50' y='68' font-size='45' text-anchor='middle' fill='white' font-weight='bold'%3EMV%3C/text%3E%3C/svg%3E" alt="Logo" class="logo-img">
-            <h2>Modo Edición</h2>
+           <img src="mi-logo.jpeg" alt="Logo" class="logo-login">
         </div>
         <div class="btn-group">
             <button id="backToDashboardBtn" class="btn btn-outline">👁️ Ver Dashboard</button>
@@ -189,16 +187,15 @@
 
 <script>
     // ============================================
-    // CONFIGURACIÓN DE FIREBASE - VERSIÓN CORRECTA
+    // CONFIGURACIÓN DE FIREBASE - NUEVA BASE DE DATOS
     // ============================================
     const firebaseConfig = {
-        apiKey: "AIzaSyDwT2zYS2pYJ3sFjzbqjsnepPBiprx4a-I",
-        authDomain: "agrupado-mv.firebaseapp.com",
-        projectId: "agrupado-mv",
-        storageBucket: "agrupado-mv.firebasestorage.app",
-        messagingSenderId: "25862887596",
-        appId: "1:25862887596:web:019bd1267eeddfd798e709",
-        measurementId: "G-82BK14E0PW"
+        apiKey: "AIzaSyC-tYyOuTCjDWYSxexhG9Pc78_uD9_y6cU",
+        authDomain: "lt-particular-mvm.firebaseapp.com",
+        projectId: "lt-particular-mvm",
+        storageBucket: "lt-particular-mvm.firebasestorage.app",
+        messagingSenderId: "272749564171",
+        appId: "1:272749564171:web:e2b16aaa47042e9f83520e"
     };
 
     // Inicializar Firebase (usando la sintaxis compat)
@@ -210,7 +207,7 @@
         db = firebase.firestore();
         analytics = firebase.analytics();
         firebaseAvailable = true;
-        console.log("✅ Firebase conectado correctamente");
+        console.log("✅ Firebase conectado correctamente - Proyecto: lt-particular-mvm");
         document.getElementById('firebaseStatus').innerHTML = "✅ Firebase OK";
         document.getElementById('firebaseStatus').style.background = "#27ae60";
     } catch(e) {
@@ -238,12 +235,12 @@
     
     // Funciones de almacenamiento
     function saveToLocalStorage(data) {
-        localStorage.setItem('avanceAgrupadoMV', JSON.stringify(data));
+        localStorage.setItem('avanceLTParticularMVM', JSON.stringify(data));
         console.log("💾 Guardado en localStorage");
     }
     
     function loadFromLocalStorage() {
-        const saved = localStorage.getItem('avanceAgrupadoMV');
+        const saved = localStorage.getItem('avanceLTParticularMVM');
         if (saved) {
             try {
                 const data = JSON.parse(saved);
@@ -259,7 +256,7 @@
         if (!firebaseAvailable) return false;
         try {
             await db.collection("avanceObra").doc("estadoGeneral").set(data, { merge: true });
-            console.log("☁️ Guardado en Firebase");
+            console.log("☁️ Guardado en Firebase (lt-particular-mvm)");
             document.getElementById('syncBadge').innerHTML = "☁️ Sincronizado";
             return true;
         } catch(e) {
@@ -425,11 +422,11 @@
         const { jsPDF } = window.jspdf;
         const doc = new jsPDF();
         doc.setFontSize(16); 
-        doc.text("Reporte de Avance - Agrupado MV", 14, 20);
+        doc.text("Reporte de Avance - LT Particular MVM", 14, 20);
         doc.setFontSize(10); 
         doc.text(`Fecha: ${new Date().toLocaleString()}`, 14, 28);
         doc.text("Proyecto: Postes troncocónicos 230kV", 14, 34);
-        doc.save(`Reporte_${new Date().toISOString().slice(0,19)}.pdf`);
+        doc.save(`Reporte_LT_Particular_MVM_${new Date().toISOString().slice(0,19)}.pdf`);
         showToast("PDF generado");
     }
     
@@ -443,11 +440,11 @@
             const testRef = db.collection("avanceObra").doc("test");
             await testRef.set({ test: true, timestamp: new Date() });
             await testRef.delete();
-            alert("✅ Firebase está funcionando correctamente!\n\nLa base de datos está accesible y se pueden guardar datos.");
+            alert("✅ Firebase está funcionando correctamente!\n\nProyecto: lt-particular-mvm\nLa base de datos está accesible y se pueden guardar datos.");
             document.getElementById('firebaseStatus').innerHTML = "✅ Firebase OK";
             document.getElementById('firebaseStatus').style.background = "#27ae60";
         } catch(e) {
-            alert("❌ Error con Firebase:\n" + e.message + "\n\nVerifica las reglas de seguridad en Firebase Console.");
+            alert("❌ Error con Firebase:\n" + e.message + "\n\nVerifica las reglas de seguridad en Firebase Console.\n\nNecesitas crear Firestore y configurar reglas a 'if true' para pruebas.");
             document.getElementById('firebaseStatus').innerHTML = "❌ Firebase Error";
             document.getElementById('firebaseStatus').style.background = "#c0392b";
         }
@@ -497,7 +494,7 @@
     async function init() {
         await loadFromFirebase();
         updateDashboard(currentData);
-        console.log("🚀 Aplicación inicializada");
+        console.log("🚀 Aplicación inicializada - Firebase: lt-particular-mvm");
     }
     init();
     setInterval(async () => { await loadFromFirebase(); updateDashboard(currentData); }, 30000);
